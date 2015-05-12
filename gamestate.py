@@ -58,6 +58,9 @@ class gamestate:
 			if(self.board[n] == self.PLAYERS["black"]):
 				self.black_groups.join(n, cell)
 
+	def turn(self):
+		return self.toplay
+
 	def winner(self):
 		"""
 		Return a number corresponding to the winning player,
@@ -79,6 +82,14 @@ class gamestate:
 		y=cell[1]
 		return [(nx , ny) for nx in range(x-1,x+2) for ny in range(y-1, y+2)\
 				if (0<=nx and nx<self.size and 0<=ny and ny<self.size and (nx-x)!=(ny-y))]
+
+	def moves(self):
+		moves = set()
+		for y in range(self.size):
+			for x in range(self.size):
+				if self.board[x,y] == self.PLAYERS["none"]:
+					moves.add((x,y))
+		return list(moves)
 
 
 	def __str__(self):

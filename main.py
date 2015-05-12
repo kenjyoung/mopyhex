@@ -5,8 +5,8 @@ def main():
 	interface = gtpinterface(agent)
 	while True:
 		command = input()
-		response = interface.send_command(command)
-		print(response)
+		success, response = interface.send_command(command)
+		print(("= " if success else "? ")+response)
 
 if __name__ == "__main__":
 	main()
