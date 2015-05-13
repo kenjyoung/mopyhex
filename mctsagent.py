@@ -27,11 +27,11 @@ class node:
 	def set_outcome(self, outcome):
 		self.outcome = outcome
 
-	def value(self):
+	def value(self, explore):
 		if(self.N == 0):
 			return inf
 		else:
-			return self.Q/self.N + EXPLORATION*sqrt(2*log(self.parent.N/self.N))
+			return self.Q/self.N + explore*sqrt(2*log(self.parent.N/self.N))
 
 
 class mctsagent:
@@ -44,9 +44,14 @@ class mctsagent:
 
 
 	def best_move(self):
+		"""
+		Return the best move according to the current tree
+		"""
 		if(self.rootstate.winner() != gamestate.PLAYERS["none"]):
 			return gamestate.GAMEOVER
-		bestchild = max(self.root.children, key = lambda n: n.value())
+		max_value = max(self.root.children, key = lambda n: n.value(0)).value(0)
+		max_nodes = [n for n in self.root.children if n.value(0) == max_value]
+		bestchild = random.choice(max_nodes)
 		return bestchild.move
 
 
@@ -83,7 +88,9 @@ class mctsagent:
 
 		#stop if we find reach a terminal node
 		while(len(node.children)!=0):
-			node = max(node.children, key = lambda n: n.value())
+			max_value = max(node.children, key = lambda n: n.value(EXPLORATION)).value(EXPLORATION)
+			max_nodes = [n for n in node.children if n.value(EXPLORATION) == max_value]
+			node = random.choice(max_nodes)
 			state.play(node.move)
 
 			#if some child node has not been explored select it before expanding
@@ -122,6 +129,7 @@ class mctsagent:
 		if(state.winner() != gamestate.PLAYERS["none"]):
 		#game is over at this node so nothing to expand
 			return (parent, state)
+
 
 		for move in state.moves():
 			children.append(node(move, parent))

@@ -37,7 +37,10 @@ class gamestate:
 		"""
 		Place a white stone regardless of whose turn it is.
 		"""
-		self.board[cell] = self.PLAYERS["white"]
+		if(self.board[cell] == self.PLAYERS["none"]):
+			self.board[cell] = self.PLAYERS["white"]
+		else:
+			raise ValueError("Cell occupied")
 		#if the placed cell touches a white edge connect it appropriately
 		if(cell[0] == 0):
 			self.white_groups.join(self.EDGE1, cell)
@@ -52,7 +55,10 @@ class gamestate:
 		"""
 		Place a black stone regardless of whose turn it is.
 		"""
-		self.board[cell] = self.PLAYERS["black"]
+		if(self.board[cell] == self.PLAYERS["none"]):
+			self.board[cell] = self.PLAYERS["black"]
+		else:
+			raise ValueError("Cell occupied")
 		#if the placed cell touches a black edge connect it appropriately
 		if(cell[1] == 0):
 			self.black_groups.join(self.EDGE1, cell)
@@ -95,12 +101,12 @@ class gamestate:
 				if (0<=nx and nx<self.size and 0<=ny and ny<self.size and (nx-x)!=(ny-y))]
 
 	def moves(self):
-		moves = set()
+		moves = []
 		for y in range(self.size):
 			for x in range(self.size):
 				if self.board[x,y] == self.PLAYERS["none"]:
-					moves.add((x,y))
-		return list(moves)
+					moves.append((x,y))
+		return moves
 
 
 	def __str__(self):

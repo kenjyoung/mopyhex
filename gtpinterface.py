@@ -103,7 +103,7 @@ class gtpinterface:
 					return (True, "")
 				else:
 					self.game.place_white((x,y))
-					self.agent.set_gamestate(game)
+					self.agent.set_gamestate(self.game)
 					return (True, "")
 
 			elif args[0][0].lower() == 'b':
@@ -113,7 +113,7 @@ class gtpinterface:
 					return (True, "")
 				else:
 					self.game.place_black((x,y))
-					self.agent.set_gamestate(game)
+					self.agent.set_gamestate(self.game)
 					return (True, "")
 
 			else:
