@@ -81,6 +81,7 @@ class mctsagent:
 			outcome = self.roll_out(state)
 			self.backup(node, state.turn(), outcome)
 			num_rollouts += 1
+
 		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
 			str(time.clock() - startTime)+" sec\n")
 
@@ -112,6 +113,7 @@ class mctsagent:
 		Simulate an entirely random game from the passed state and return the winning
 		player.
 		"""
+		state = deepcopy(state)
 		moves = state.moves()
 
 		while(state.winner() == gamestate.PLAYERS["none"]):
