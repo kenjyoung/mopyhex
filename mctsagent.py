@@ -3,10 +3,16 @@ import time
 import random
 from math import sqrt, log
 from copy import copy, deepcopy
+from sys import stderr
 EXPLORATION = 1
 inf = float('inf')
 
 class node:
+	"""
+	Node for the MCST. Stores the move applied to reach this node from its parent,
+	stats for the associated game position, children, parent and outcome 
+	(outcome==none unless the position ends the game).
+	"""
 	def __init__(self, move = None, parent = None):
 		self.move = move
 		self.parent = parent
@@ -29,12 +35,17 @@ class node:
 
 
 class mctsagent:
+	"""
+	Basic no frills implementation of an agent that preforms MCTS for hex.
+	"""
 	def __init__(self, state):
 		self.rootstate = deepcopy(state)
 		self.root = node()
 
 
 	def best_move(self):
+		if(self.rootstate.winner() != gamestate.PLAYERS["none"]):
+			return gamestate.GAMEOVER
 		bestchild = max(self.root.children, key = lambda n: n.value())
 		return bestchild.move
 
@@ -54,12 +65,16 @@ class mctsagent:
 
 	def search(self, time_budget):
 		startTime = time.clock()
+		num_rollouts = 0
 
 		#do until we exceed our time budget
 		while(time.clock() - startTime <time_budget):
 			node, state = self.select_node()
 			outcome = self.roll_out(state)
 			self.backup(node, state.turn(), outcome)
+			num_rollouts += 1
+		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
+			str(time.clock() - startTime)+" sec\n")
 
 
 	def select_node(self):
@@ -69,10 +84,10 @@ class mctsagent:
 		#stop if we find reach a terminal node
 		while(len(node.children)!=0):
 			node = max(node.children, key = lambda n: n.value())
-			#if some child node has not been explored select it before expanding
-			#other children
 			state.play(node.move)
 
+			#if some child node has not been explored select it before expanding
+			#other children
 			if node.N == 0:
 				return (node, state)
 
@@ -93,7 +108,7 @@ class mctsagent:
 
 
 	def backup(self, node, turn, outcome):
-		reward = 1 if outcome == turn else -1
+		reward = -1 if outcome == turn else 1
 
 		while node!=None:
 			node.N += 1
@@ -105,7 +120,7 @@ class mctsagent:
 	def expand(self, parent, state):
 		children = []
 		if(state.winner() != gamestate.PLAYERS["none"]):
-		#outcome is decided so nothing to expand
+		#game is over at this node so nothing to expand
 			return (parent, state)
 
 		for move in state.moves():
@@ -120,6 +135,3 @@ class mctsagent:
 	def set_gamestate(self, state):
 		self.rootstate = deepcopy(state)
 		self.root = node()
-
-
-

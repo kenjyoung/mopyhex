@@ -6,7 +6,8 @@ def main():
 	while True:
 		command = input()
 		success, response = interface.send_command(command)
-		print(("= " if success else "? ")+response)
+		print(("= " if success else "? ")+response+'\n')
 
 if __name__ == "__main__":
 	main()
+	

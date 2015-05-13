@@ -31,6 +31,13 @@ class unionfind:
 		return True
 
 	def find(self, x):
+		"""
+		Get the representative element associated with the set in
+		which element x resides. Also compresses the tree such that
+		all elements on the path from x to its representative are now
+		direct children of the representative so that future find operations
+		are faster.
+		"""
 		if x not in self.parent:
 			self.parent[x] = x
 			self.rank[x] = 0
@@ -43,6 +50,3 @@ class unionfind:
 		Check if two elements are in the same group.
 		"""
 		return self.find(x)==self.find(y)
-
-
-

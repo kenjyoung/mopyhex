@@ -2,7 +2,12 @@ import numpy as np
 from unionfind import unionfind
 
 class gamestate:
+	#dictionary associating numbers with players for book keeping
 	PLAYERS = {"none" : 0, "white" : 1, "black" : 2}
+
+	#move value of -1 indicates the game has ended so no move is possible
+	GAMEOVER = -1 
+
 	#represent edges in the union find strucure for win detection
 	EDGE1 = 1
 	EDGE2 = 2
@@ -61,6 +66,12 @@ class gamestate:
 	def turn(self):
 		return self.toplay
 
+	def set_turn(self, player):
+		if(player in self.PLAYERS.values() and player !=self.PLAYERS["none"]):
+			self.toplay = player
+		else:
+			raise ValueError('Invalid turn: ' + str(player))
+
 	def winner(self):
 		"""
 		Return a number corresponding to the winning player,
@@ -99,7 +110,7 @@ class gamestate:
 		white = 'O'
 		black = '@'
 		empty = '.'
-		ret = ''
+		ret = '\n'
 		coord_size = len(str(self.size))
 		offset = 1
 		ret+=' '*(offset+1)
