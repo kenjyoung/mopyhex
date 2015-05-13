@@ -2,6 +2,11 @@ import numpy as np
 from unionfind import unionfind
 
 class gamestate:
+	"""
+	Stores information representing the current state of a game of hex, namely
+	the board and the current turn. Also provides functions for playing the game
+	and returning information about it.
+	"""
 	#dictionary associating numbers with players for book keeping
 	PLAYERS = {"none" : 0, "white" : 1, "black" : 2}
 
@@ -11,6 +16,7 @@ class gamestate:
 	#represent edges in the union find strucure for win detection
 	EDGE1 = 1
 	EDGE2 = 2
+
 	def __init__(self, size):
 		"""
 		Initialize the game board and give white first turn.
@@ -70,9 +76,15 @@ class gamestate:
 				self.black_groups.join(n, cell)
 
 	def turn(self):
+		"""
+		Return the player with the next move.
+		"""
 		return self.toplay
 
 	def set_turn(self, player):
+		"""
+		Set the player to take the next move.
+		"""
 		if(player in self.PLAYERS.values() and player !=self.PLAYERS["none"]):
 			self.toplay = player
 		else:
@@ -90,7 +102,6 @@ class gamestate:
 		else:
 			return self.PLAYERS["none"]
 
-
 	def neighbors(self, cell):
 		"""
 		Return list of neighbors of the passed cell.
@@ -101,13 +112,15 @@ class gamestate:
 				if (0<=nx and nx<self.size and 0<=ny and ny<self.size and (nx-x)!=(ny-y))]
 
 	def moves(self):
+		"""
+		Get a list of all moves possible on the current board.
+		"""
 		moves = []
 		for y in range(self.size):
 			for x in range(self.size):
 				if self.board[x,y] == self.PLAYERS["none"]:
 					moves.append((x,y))
 		return moves
-
 
 	def __str__(self):
 		"""

@@ -42,10 +42,9 @@ class mctsagent:
 		self.rootstate = deepcopy(state)
 		self.root = node()
 
-
 	def best_move(self):
 		"""
-		Return the best move according to the current tree
+		Return the best move according to the current tree.
 		"""
 		if(self.rootstate.winner() != gamestate.PLAYERS["none"]):
 			return gamestate.GAMEOVER
@@ -54,8 +53,10 @@ class mctsagent:
 		bestchild = random.choice(max_nodes)
 		return bestchild.move
 
-
 	def move(self, move):
+		"""
+		Make the passed move and update the tree approriately.
+		"""
 		for child in self.root.children:
 			if move == child.move:
 				child.parent = None
@@ -67,8 +68,10 @@ class mctsagent:
 		self.rootstate.play(move)
 		self.root = node()
 
-
 	def search(self, time_budget):
+		"""
+		Search and update the search tree for a specified amount of time in secounds.
+		"""
 		startTime = time.clock()
 		num_rollouts = 0
 
@@ -81,8 +84,10 @@ class mctsagent:
 		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
 			str(time.clock() - startTime)+" sec\n")
 
-
 	def select_node(self):
+		"""
+		Select a node in the tree to preform a single simulation from.
+		"""
 		node = self.root
 		state = deepcopy(self.rootstate)
 
@@ -102,8 +107,11 @@ class mctsagent:
 		(node, state) = self.expand(node, state)
 		return (node, state)
 
-
 	def roll_out(self, state):
+		"""
+		Simulate an entirely random game from the passed state and return the winning
+		player.
+		"""
 		moves = state.moves()
 
 		while(state.winner() == gamestate.PLAYERS["none"]):
@@ -113,8 +121,11 @@ class mctsagent:
 
 		return state.winner()
 
-
 	def backup(self, node, turn, outcome):
+		"""
+		Update the node statistics on the path from the passed node to root to reflect
+		the outcome of a randomly simulated playout.
+		"""
 		reward = -1 if outcome == turn else 1
 
 		while node!=None:
@@ -123,8 +134,14 @@ class mctsagent:
 			reward = -reward
 			node = node.parent
 
-		
 	def expand(self, parent, state):
+		"""
+		Generate the children of the passed "parent" node based on the available
+		moves in the passed gamestate, return one of the generate children at random
+		along with its associated state.
+		If state is a finished game do nothing and just return the passed node
+		and state (there are no children to generate if the game is already over).
+		"""
 		children = []
 		if(state.winner() != gamestate.PLAYERS["none"]):
 		#game is over at this node so nothing to expand
@@ -139,7 +156,11 @@ class mctsagent:
 		state.play(selected_child.move)
 		return (selected_child, state)
 
-
 	def set_gamestate(self, state):
+		"""
+		Set the rootstate of the tree to the passed gamestate, this clears all
+		the information stored in the tree since none of it applies to the new 
+		state.
+		"""
 		self.rootstate = deepcopy(state)
 		self.root = node()

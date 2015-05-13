@@ -12,6 +12,10 @@ class gtpinterface:
 	along with a gamestate which holds the current state of the game.
 	"""
 	def __init__(self, agent):
+		"""
+		Initilize the list of available commands, binding appropriate names to the
+		funcitons defined in this file.
+		"""
 		commands={}
 		commands["name"] = self.gtp_name
 		commands["version"] = self.gtp_version
@@ -33,6 +37,10 @@ class gtpinterface:
 		self.move_time = 5
 
 	def send_command(self, command):
+		"""
+		Parse the given command into a function name and arguments, execute it
+		then return the response.
+		"""
 		parsed_command = command.split()
 		#first word specifies function to call, the rest are args
 		name = parsed_command[0]
@@ -42,15 +50,27 @@ class gtpinterface:
 		else:
 			return (False, "Unrecognized command")
 	def gtp_name(self, args):
+		"""
+		Return the name of the program.
+		"""
 		return (True, "Mopyhex")
 
 	def gtp_version(self, args):
+		"""
+		Return the version of the program.
+		"""
 		return (True, str(version))
 
 	def gtp_protocol():
+		"""
+		Return the version of GTP used.
+		"""
 		return(True, str(protocol_version))
 
 	def gtp_known(self, args):
+		"""
+		Return a boolean indicating whether the passed command name is a known command.
+		"""
 		if(len(args)<1):
 			return (False, "Not enough arguments")
 		if(args[0] in commands):
@@ -59,15 +79,24 @@ class gtpinterface:
 			return (True, "false")
 
 	def gtp_list(self, args):
+		"""
+		Return a list of all known command names.
+		"""
 		ret=''
 		for command in self.commands:
 			ret+='\n'+command
 		return (True, ret)
 
 	def gtp_quit(self, args):
+		"""
+		Exit the program.
+		"""
 		sys.exit()
 
 	def gtp_boardsize(self, args):
+		"""
+		Set the size of the game board (will also clear the board).
+		"""
 		if(len(args)<1):
 			return (False, "Not enough arguments")
 		try:
@@ -82,11 +111,22 @@ class gtpinterface:
 		return (True, "")
 
 	def gtp_clear(self, args):
+		"""
+		Clear the game board.
+		"""
 		self.game = gamestate(self.game.size)
 		self.agent.set_gamestate(self.game)
 		return (True, "")
 
 	def gtp_play(self, args):
+		"""
+		Play a stone of a given colour in a given cell.
+		1st arg = colour (white/w or black/b)
+		2nd arg = cell (i.e. g5)
+
+		Note: play order is not enforced but out of order turns will cause the
+		search tree to be reset
+		"""
 		if(len(args)<2):
 			return (False, "Not enough arguments")
 		try:
@@ -123,6 +163,12 @@ class gtpinterface:
 			return (False, "Malformed arguments")
 
 	def gtp_genmove(self, args):
+		"""
+		Allow the agent to play a stone of the given colour (white/w or black/b)
+		
+		Note: play order is not enforced but out of order turns will cause the
+		search tree to be reset
+		"""
 		if(len(args)<1):
 			return (False, "Not enough arguments")
 
@@ -148,6 +194,9 @@ class gtpinterface:
 		return (True, chr(ord('a')+move[0])+str(move[1]+1))
 
 	def gtp_time(self, args):
+		"""
+		Change the time per move allocated to the search agent (in units of secounds)
+		"""
 		if(len(args)<1):
 			return (False, "Not enough arguments")
 		try:
@@ -160,4 +209,7 @@ class gtpinterface:
 		return (True, "Time limit per move changed")
 
 	def gtp_show(self, args):
+		"""
+		Return an ascii representation of the current state of the game board.
+		"""
 		return (True, str(self.game))

@@ -1,6 +1,10 @@
 from gtpinterface import gtpinterface
 from mctsagent import mctsagent
 def main():
+	"""
+	Main function, simply sends user input on to the gtp interface and prints
+	responses.
+	"""
 	agent = mctsagent
 	interface = gtpinterface(agent)
 	while True:
@@ -10,4 +14,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-	
