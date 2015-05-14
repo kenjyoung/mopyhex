@@ -34,7 +34,7 @@ class gtpinterface:
 		self.commands = commands
 		self.game = gamestate(8)
 		self.agent = mctsagent(self.game)
-		self.move_time = 5
+		self.move_time = 10
 
 	def send_command(self, command):
 		"""

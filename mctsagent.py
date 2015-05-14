@@ -31,7 +31,7 @@ class node:
 		if(self.N == 0):
 			return inf
 		else:
-			return self.Q/self.N + explore*sqrt(2*log(self.parent.N/self.N))
+			return self.Q/self.N + explore*sqrt(2*log(self.parent.N)/self.N)
 
 
 class mctsagent:
@@ -139,7 +139,7 @@ class mctsagent:
 	def expand(self, parent, state):
 		"""
 		Generate the children of the passed "parent" node based on the available
-		moves in the passed gamestate, return one of the generate children at random
+		moves in the passed gamestate, return one of the generated children at random
 		along with its associated state.
 		If state is a finished game do nothing and just return the passed node
 		and state (there are no children to generate if the game is already over).
