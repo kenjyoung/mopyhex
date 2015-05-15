@@ -14,6 +14,10 @@ class node:
 	(outcome==none unless the position ends the game).
 	"""
 	def __init__(self, move = None, parent = None):
+		"""
+		Initialize a new node with optional move and parent and initially empty
+		children list and rollout statistics and unspecified outcome.
+		"""
 		self.move = move
 		self.parent = parent
 		self.N = 0 #times this position was visited
@@ -22,14 +26,34 @@ class node:
 		self.outcome = gamestate.PLAYERS["none"]
 
 	def add_children(self, children):
+		"""
+		Add a list of nodes to the children of this node.
+		"""
 		self.children += children
 
 	def set_outcome(self, outcome):
+		"""
+		Set the outcome of this node (i.e. if we decide the node is the end of
+		the game)
+		"""
 		self.outcome = outcome
 
 	def value(self, explore):
+		"""
+		Calculate the UCT value of this node relative to its parent, the parameter
+		"explore" specifies how much the value should favor nodes that have
+		yet to be thoroughly explored versus nodes that seem to have a high win
+		rate. 
+		Currently explore is set to zero when choosing the best move to play so
+		that the move with the highest winrate is always chossen. When searching
+		explore is set to EXPLORATION specified above.
+		"""
+		#unless explore is set to zero, maximally favor unexplored nodes
 		if(self.N == 0):
-			return inf
+			if(explore == 0):
+				return 0
+			else:
+				return inf
 		else:
 			return self.Q/self.N + explore*sqrt(2*log(self.parent.N)/self.N)
 
@@ -48,6 +72,8 @@ class mctsagent:
 		"""
 		if(self.rootstate.winner() != gamestate.PLAYERS["none"]):
 			return gamestate.GAMEOVER
+
+		#choose the move of the maximum value node breaking ties randomly
 		max_value = max(self.root.children, key = lambda n: n.value(0)).value(0)
 		max_nodes = [n for n in self.root.children if n.value(0) == max_value]
 		bestchild = random.choice(max_nodes)
@@ -58,11 +84,13 @@ class mctsagent:
 		Make the passed move and update the tree approriately.
 		"""
 		for child in self.root.children:
+			#make the child associated with the move the new root
 			if move == child.move:
 				child.parent = None
 				self.root = child
 				self.rootstate.play(child.move)
 				return
+
 		#if for whatever reason the move is not in the children of
 		#the root just throw out the tree and start over
 		self.rootstate.play(move)
@@ -94,6 +122,7 @@ class mctsagent:
 
 		#stop if we find reach a terminal node
 		while(len(node.children)!=0):
+			#decend to the maximum value node, break ties at random
 			max_value = max(node.children, key = lambda n: n.value(EXPLORATION)).value(EXPLORATION)
 			max_nodes = [n for n in node.children if n.value(EXPLORATION) == max_value]
 			node = random.choice(max_nodes)
@@ -128,6 +157,8 @@ class mctsagent:
 		Update the node statistics on the path from the passed node to root to reflect
 		the outcome of a randomly simulated playout.
 		"""
+		#note that reward is calculated for player who just played
+		#at the node and not the next player to play
 		reward = -1 if outcome == turn else 1
 
 		while node!=None:

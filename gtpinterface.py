@@ -167,7 +167,7 @@ class gtpinterface:
 		Allow the agent to play a stone of the given colour (white/w or black/b)
 		
 		Note: play order is not enforced but out of order turns will cause the
-		search tree to be reset
+		agents search tree to be reset
 		"""
 		if(len(args)<1):
 			return (False, "Not enough arguments")
