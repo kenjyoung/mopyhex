@@ -169,21 +169,20 @@ class gtpinterface:
 		Note: play order is not enforced but out of order turns will cause the
 		agents search tree to be reset
 		"""
-		if(len(args)<1):
-			return (False, "Not enough arguments")
+		#if user specifies a player generate the appropriate move
+		#otherwise just go with the current turn
+		if(len(args)>0):
+			if args[0][0].lower() == 'w':
+				if self.game.turn() != gamestate.PLAYERS["white"]:
+					self.game.set_turn(gamestate.PLAYERS["white"])
+					self.agent.set_gamestate(self.game)
 
-		if args[0][0].lower() == 'w':
-			if self.game.turn() != gamestate.PLAYERS["white"]:
-				self.game.set_turn(gamestate.PLAYERS["white"])
-				self.agent.set_gamestate(self.game)
-
-		elif args[0][0].lower() == 'b':
-			if self.game.turn() != gamestate.PLAYERS["black"]:
-				self.game.set_turn(gamestate.PLAYERS["black"])
-				self.agent.set_gamestate(self.game)
-
-		else:
-			return (False, "Player not recognized")
+			elif args[0][0].lower() == 'b':
+				if self.game.turn() != gamestate.PLAYERS["black"]:
+					self.game.set_turn(gamestate.PLAYERS["black"])
+					self.agent.set_gamestate(self.game)
+			else:
+				return (False, "Player not recognized")
 
 		self.agent.search(self.move_time)
 		move = self.agent.best_move()
