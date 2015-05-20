@@ -41,9 +41,16 @@ class unionfind:
 		if x not in self.parent:
 			self.parent[x] = x
 			self.rank[x] = 0
-		if x != self.parent[x]:
-			self.parent[x] = self.find(self.parent[x])
-		return self.parent[x]
+
+		px = self.parent[x]
+		if x == px: return x
+
+		gx = self.parent[px]
+		if gx==px: return px
+
+		self.parent[x] = gx
+
+		return self.find(gx)
 
 	def connected(self, x, y):
 		"""
