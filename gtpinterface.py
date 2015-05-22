@@ -205,7 +205,7 @@ class gtpinterface:
 		if time<1:
 			return (False, "Argument is not a valid time limit")
 		self.move_time = time
-		return (True, "Time limit per move changed")
+		return (True, "")
 
 	def gtp_show(self, args):
 		"""

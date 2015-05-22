@@ -17,6 +17,8 @@ class gamestate:
 	EDGE1 = 1
 	EDGE2 = 2
 
+	neighbor_patterns = ((-1,0), (0,-1), (-1,1), (0,1), (1,0), (1,-1))
+
 	def __init__(self, size):
 		"""
 		Initialize the game board and give white first turn.
@@ -108,8 +110,8 @@ class gamestate:
 		"""
 		x = cell[0]
 		y=cell[1]
-		return [(nx , ny) for nx in range(x-1,x+2) for ny in range(y-1, y+2)\
-				if (0<=nx and nx<self.size and 0<=ny and ny<self.size and (nx-x)!=(ny-y))]
+		return [(n[0]+x , n[1]+y) for n in self.neighbor_patterns\
+			if (0<=n[0]+x and n[0]+x<self.size and 0<=n[1]+y and n[1]+y<self.size)]
 
 	def moves(self):
 		"""

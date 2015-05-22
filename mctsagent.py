@@ -120,7 +120,7 @@ class mctsagent:
 		node = self.root
 		state = deepcopy(self.rootstate)
 
-		#stop if we find reach a terminal node
+		#stop if we find reach a leaf node
 		while(len(node.children)!=0):
 			#decend to the maximum value node, break ties at random
 			max_value = max(node.children, key = lambda n: n.value(EXPLORATION)).value(EXPLORATION)
@@ -133,8 +133,11 @@ class mctsagent:
 			if node.N == 0:
 				return (node, state)
 
-		#if we reach a terminal node generate its children and return one of them
-		(node, state) = self.expand(node, state)
+		#if we reach a leaf node generate its children and return one of them
+		#if the node is terminal, just return the terminal node
+		if(self.expand(node, state)):
+			node = random.choice(node.children)
+			state.play(node.move)
 		return (node, state)
 
 	def roll_out(self, state):
@@ -178,16 +181,14 @@ class mctsagent:
 		children = []
 		if(state.winner() != gamestate.PLAYERS["none"]):
 		#game is over at this node so nothing to expand
-			return (parent, state)
+			return False
 
 
 		for move in state.moves():
 			children.append(node(move, parent))
 
 		parent.add_children(children)
-		selected_child = random.choice(children)
-		state.play(selected_child.move)
-		return (selected_child, state)
+		return True
 
 	def set_gamestate(self, state):
 		"""
