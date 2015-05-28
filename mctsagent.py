@@ -4,7 +4,6 @@ import random
 from math import sqrt, log
 from copy import copy, deepcopy
 from sys import stderr
-EXPLORATION = 1
 inf = float('inf')
 
 class node:
@@ -62,6 +61,8 @@ class mctsagent:
 	"""
 	Basic no frills implementation of an agent that preforms MCTS for hex.
 	"""
+	EXPLORATION = 1
+
 	def __init__(self, state):
 		self.rootstate = deepcopy(state)
 		self.root = node()
@@ -106,8 +107,9 @@ class mctsagent:
 		#do until we exceed our time budget
 		while(time.clock() - startTime <time_budget):
 			node, state = self.select_node()
+			turn = state.turn()
 			outcome = self.roll_out(state)
-			self.backup(node, state.turn(), outcome)
+			self.backup(node, turn, outcome)
 			num_rollouts += 1
 
 		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
@@ -123,8 +125,8 @@ class mctsagent:
 		#stop if we find reach a leaf node
 		while(len(node.children)!=0):
 			#decend to the maximum value node, break ties at random
-			max_value = max(node.children, key = lambda n: n.value(EXPLORATION)).value(EXPLORATION)
-			max_nodes = [n for n in node.children if n.value(EXPLORATION) == max_value]
+			max_value = max(node.children, key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
+			max_nodes = [n for n in node.children if n.value(self.EXPLORATION) == max_value]
 			node = random.choice(max_nodes)
 			state.play(node.move)
 
@@ -145,7 +147,6 @@ class mctsagent:
 		Simulate an entirely random game from the passed state and return the winning
 		player.
 		"""
-		state = deepcopy(state)
 		moves = state.moves()
 
 		while(state.winner() == gamestate.PLAYERS["none"]):
@@ -173,10 +174,7 @@ class mctsagent:
 	def expand(self, parent, state):
 		"""
 		Generate the children of the passed "parent" node based on the available
-		moves in the passed gamestate, return one of the generated children at random
-		along with its associated state.
-		If state is a finished game do nothing and just return the passed node
-		and state (there are no children to generate if the game is already over).
+		moves in the passed gamestate and add them to the tree.
 		"""
 		children = []
 		if(state.winner() != gamestate.PLAYERS["none"]):
