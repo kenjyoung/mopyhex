@@ -5,7 +5,7 @@ def main():
 	Main function, simply sends user input on to the gtp interface and prints
 	responses.
 	"""
-	agent = mctsagent
+	agent = mctsagent()
 	interface = gtpinterface(agent)
 	while True:
 		command = input()

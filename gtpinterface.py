@@ -31,9 +31,11 @@ class gtpinterface:
 		commands["showboard"] = self.gtp_show
 		commands["print"] = self.gtp_show
 		commands["set_time"] = self.gtp_time
+		commands["winner"] = self.gtp_winner
 		self.commands = commands
 		self.game = gamestate(8)
-		self.agent = mctsagent(self.game)
+		self.agent = agent
+		self.agent.set_gamestate(self.game)
 		self.move_time = 10
 
 	def send_command(self, command):
@@ -212,3 +214,15 @@ class gtpinterface:
 		Return an ascii representation of the current state of the game board.
 		"""
 		return (True, str(self.game))
+
+	def gtp_winner(self, args):
+		"""
+		Return the winner of the current game (black or white), none if undecided.
+		"""
+		if(self.game.winner()==gamestate.PLAYERS["white"]):
+			return (True, "white")
+		elif(self.game.winner()==gamestate.PLAYERS["black"]):
+			return (True, "black")
+		else:
+			return (True, "none")
+

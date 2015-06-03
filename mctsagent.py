@@ -63,7 +63,7 @@ class mctsagent:
 	"""
 	EXPLORATION = 1
 
-	def __init__(self, state):
+	def __init__(self, state=gamestate(8)):
 		self.rootstate = deepcopy(state)
 		self.root = node()
 
