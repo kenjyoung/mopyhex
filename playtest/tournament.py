@@ -1,6 +1,10 @@
 from gtpinterface import gtpinterface
 from gamestate import gamestate
 def tournament(interface1, interface2, game_number=100, movetime=10, size=8):
+	"""
+	Run some number of games between two agents, alternating who has first move
+	each time. Return the winrate for the first of the two agents.
+	"""
 	interface1.send_command("set_time "+str(movetime))
 	interface2.send_command("set_time "+str(movetime))
 	interface1.send_command("boardsize "+str(size))

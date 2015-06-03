@@ -5,8 +5,8 @@ from mctsagent import mctsagent
 from gtpinterface import gtpinterface
 def main():
 	"""
-	Main function, simply sends user input on to the gtp interface and prints
-	responses.
+	Run a tournament between two agents and print the resulting winrate
+	for the first agent.
 	"""
 	interface1 = gtpinterface(mctsagent())
 	interface2 = gtpinterface(mctsagent())
