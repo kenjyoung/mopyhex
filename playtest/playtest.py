@@ -2,6 +2,7 @@ import sys
 sys.path.append("../")
 from tournament import tournament
 from mctsagent import mctsagent
+from gamestate import gamestate
 from gtpinterface import gtpinterface
 def main():
 	"""
