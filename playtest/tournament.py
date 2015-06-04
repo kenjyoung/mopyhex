@@ -1,6 +1,7 @@
 from gtpinterface import gtpinterface
 from gamestate import gamestate
 from copy import deepcopy
+import sys
 
 def print_game(game):
 	for move in game:
@@ -70,5 +71,6 @@ def tournament(interface1, interface2, game_number=100, movetime=10, size=8, ope
 				win_count+=1
 			else:
 				print("Game complete, winner: agent2("+c1+")\n")
+		sys.stdout.flush() #flush buffer so intermediate results can be viewed
 
 	return win_count/game_number
