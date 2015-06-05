@@ -11,7 +11,7 @@ def main():
 	"""
 	interface1 = gtpinterface(mctsagent())
 	interface2 = gtpinterface(mctsagent())
-	print(str(tournament(interface1, interface2, 4, 2, 3)))
+	print(str(tournament(interface1, interface2, 4, 2, 3, ['a1'])))
 	
 
 if __name__ == "__main__":

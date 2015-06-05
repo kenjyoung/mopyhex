@@ -11,8 +11,8 @@ def print_game(game):
 def setup(interface1, interface2, opening_moves):
 	c = 'w'
 	for move in opening_moves:
-		interface1.send_command("play "+c+move)
-		interface2.send_command("play "+c+move)
+		interface1.send_command("play "+c+" "+move)
+		interface2.send_command("play "+c+" "+move)
 		c =('w' if c=='b' else 'b')
 
 def tournament(interface1, interface2, game_number=100, movetime=10, size=8, opening_moves=[]):
