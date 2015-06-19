@@ -74,9 +74,9 @@ class mctsagent:
 		if(self.rootstate.winner() != gamestate.PLAYERS["none"]):
 			return gamestate.GAMEOVER
 
-		#choose the move of the maximum value node breaking ties randomly
-		max_value = max(self.root.children, key = lambda n: n.value(0)).value(0)
-		max_nodes = [n for n in self.root.children if n.value(0) == max_value]
+		#choose the move of the most simulated node breaking ties randomly
+		max_value = max(self.root.children, key = lambda n: n.N).N
+		max_nodes = [n for n in self.root.children if n.N == max_value]
 		bestchild = random.choice(max_nodes)
 		return bestchild.move
 
