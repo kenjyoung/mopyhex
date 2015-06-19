@@ -4,6 +4,7 @@ import random
 from math import sqrt, log
 from copy import copy, deepcopy
 from sys import stderr
+from queue import Queue
 inf = float('inf')
 
 class node:
@@ -114,6 +115,7 @@ class mctsagent:
 
 		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
 			str(time.clock() - startTime)+" sec\n")
+		stderr.write("Node count: "+str(self.tree_size())+"\n")
 
 	def select_node(self):
 		"""
@@ -196,3 +198,18 @@ class mctsagent:
 		"""
 		self.rootstate = deepcopy(state)
 		self.root = node()
+
+	def tree_size(self):
+		"""
+		Count nodes in tree by BFS.
+		"""
+		Q = Queue()
+		count = 0
+		Q.put(self.root)
+		while not Q.empty():
+			node = Q.get()
+			count +=1
+			for child in node.children:
+				Q.put(child)
+		return count
+			
