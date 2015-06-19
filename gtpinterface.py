@@ -51,6 +51,14 @@ class gtpinterface:
 			return self.commands[name](args)
 		else:
 			return (False, "Unrecognized command")
+
+	def register_command(self, name, command):
+		"""
+		Add a new command to the commands list under name which
+		calls the function command, will also overwrite old commands.
+		"""
+		self.commands[name] = command
+
 	def gtp_name(self, args):
 		"""
 		Return the name of the program.
@@ -188,6 +196,7 @@ class gtpinterface:
 
 		self.agent.search(self.move_time)
 		move = self.agent.best_move()
+
 		if(move == gamestate.GAMEOVER):
 			return (False, "The game is already over")
 		self.game.play(move)
