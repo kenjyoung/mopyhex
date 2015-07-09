@@ -32,6 +32,7 @@ class gtpinterface:
 		commands["print"] = self.gtp_show
 		commands["set_time"] = self.gtp_time
 		commands["winner"] = self.gtp_winner
+		commands["hexgui-analyze_commands"] = self.gtp_analyze
 		self.commands = commands
 		self.game = gamestate(8)
 		self.agent = agent
@@ -234,4 +235,10 @@ class gtpinterface:
 			return (True, "black")
 		else:
 			return (True, "none")
+
+	def gtp_analyze(self, args):
+		"""
+		Added to avoid crashing with gui but not yet implemented.
+		"""
+		return (True, "")
 
