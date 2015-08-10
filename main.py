@@ -1,11 +1,11 @@
 from gtpinterface import gtpinterface
-from mctsagent import mctsagent
+from crit_mctsagent import crit_mctsagent
 def main():
 	"""
 	Main function, simply sends user input on to the gtp interface and prints
 	responses.
 	"""
-	agent = mctsagent()
+	agent = crit_mctsagent()
 	interface = gtpinterface(agent)
 	while True:
 		command = input()
