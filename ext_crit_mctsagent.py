@@ -42,45 +42,42 @@ class ext_crit_mctsagent(mctsagent):
 	def find_crit(self, G, s, d):
 		cut_points = set()
 		S = []
-		S.append((s, None))
+		#stack contains node parent pairs along with iterator into children
+		S.append([(s, None),iter(G[s])])
 		visited = set()
+		visited.add(s)
 		leaves = []
 		depth = {}
-		dest = {} #does the DFS subtree at each vertex contain dest?
-		#root has parent None and depth 0 so...
-		depth[None] = -1
+		depth[s] = 0
 		parent = {}
+		parent[s] = None
 		low = {}
+		low[s] = 0
 
 		while S:
-			v, p = S.pop()
-			if not v in visited:
-				visited.add(v)
-				parent[v] = p
-				depth[v] = depth[p] +1
-				low[v] = depth[v]
-				leaf = True
-				for n in G[v]:
-					if n not in visited:
-						leaf = False
-					elif n is not parent[v]:
-						low[v] = min(low[v],low[n])
-					S.append((n,v))
-				if leaf:
-					leaves.append(v)
+			v, p = S[-1][0]
+			try:
+				child = next(S[-1][1])
+				#vertex is initially pushed to stack
+				if(child not in visited):
+					visited.add(child)
+					S.append([(child, v),iter(G[child])])
+					depth[child] = depth[v]+1
+					parent[child] = v
+					low[child] = depth[child]
+				elif child is not p:
+					low[v] = min(low[v], depth[child])
+			#vertex is removed from stack and we backtrack
+			except StopIteration:
+				S.pop()
+				if(p):
+					low[p] = min(low[p], low[v])
 
-		#backpropogate info from leaf nodes
-		for v in leaves:
-			while parent[v]:
-				low[parent[v]] =min(low[parent[v]],low[v])
-				v = parent[v]
-
-		#and search the ancestors of our destination for separation points
 		v = d
-		while parent[v]!=s:
-			if(low[v] >= depth[parent[v]]):
-				cut_points.add(parent[v])
-			v = parent[v]
+		while parent[v] != s:
+				if(low[v] >= depth[parent[v]]):
+					cut_points.add(parent[v])
+				v = parent[v]
 
 		return cut_points
 		
@@ -112,7 +109,9 @@ class ext_crit_mctsagent(mctsagent):
 
 		if(last):
 			G = self.get_graph(state, state.winner())
-			self.crit_pts|=self.find_crit(G, gamestate.EDGE1, gamestate.EDGE2)
+			new_crits = self.find_crit(G, gamestate.EDGE1, gamestate.EDGE2)
+			crit_count = len(new_crits)
+			self.crit_pts|=new_crits
 
 		return state.winner()
 
