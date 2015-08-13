@@ -99,8 +99,8 @@ class ext_crit_mctsagent(mctsagent):
 				break
 
 		if(state.winner() == gamestate.PLAYERS["none"]):
+			moves = state.moves()
 			while(True):
-				moves = state.moves()
 				move = random.choice(moves)
 				state.play(move)
 				moves.remove(move)
