@@ -42,8 +42,8 @@ class ext_crit_mctsagent(mctsagent):
 	def find_crit(self, G, s, d):
 		cut_points = set()
 		S = []
-		#stack contains node parent pairs along with iterator into children
-		S.append([(s, None),iter(G[s])])
+		#stack contains nodes being visited along with iterator into children
+		S.append([s ,iter(G[s])])
 		visited = set()
 		visited.add(s)
 		leaves = []
@@ -55,21 +55,22 @@ class ext_crit_mctsagent(mctsagent):
 		low[s] = 0
 
 		while S:
-			v, p = S[-1][0]
+			v = S[-1][0]
 			try:
 				child = next(S[-1][1])
 				#vertex is initially pushed to stack
 				if(child not in visited):
 					visited.add(child)
-					S.append([(child, v),iter(G[child])])
+					S.append([child ,iter(G[child])])
 					depth[child] = depth[v]+1
 					parent[child] = v
 					low[child] = depth[child]
-				elif child is not p:
+				elif child is not parent[v]:
 					low[v] = min(low[v], depth[child])
 			#vertex is removed from stack and we backtrack
 			except StopIteration:
 				S.pop()
+				p = parent[v]
 				if(p):
 					low[p] = min(low[p], low[v])
 
