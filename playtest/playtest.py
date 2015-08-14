@@ -10,7 +10,7 @@ def main():
 	Run a tournament between two agents and print the resulting winrate
 	for the first agent.
 	"""
-	interface1 = gtpinterface(mctsagent())
+	interface1 = gtpinterface(ext_crit_mctsagent())
 	interface2 = gtpinterface(crit_mctsagent())
 	print(str(tournament(interface1, interface2, 4, 2, 3, ['a1'])))
 	
