@@ -1,4 +1,5 @@
 from gtpinterface import gtpinterface
+from crit_mctsagent import crit_mctsagent
 from ext_crit_mctsagent import ext_crit_mctsagent
 def main():
 	"""
