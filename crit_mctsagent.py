@@ -72,7 +72,7 @@ class crit_mctsagent(mctsagent):
 		#if for whatever reason the move is not in the children of
 		#the root just throw out the tree and start over
 		self.rootstate.play(move)
-		self.root = node()
+		self.root = crit_node()
 
 	def search(self, time_budget):
 		"""
@@ -135,9 +135,8 @@ class crit_mctsagent(mctsagent):
 		reward = -1 if outcome == turn else 1
 
 		while node!=None:
-			if reward == -1:
-				if crit in node.children:
-					node.children[crit].crit_count+=1
+			if crit in node.children:
+				node.children[crit].crit_count+=1
 			node.N += 1
 			node.Q +=reward
 			reward = -reward
