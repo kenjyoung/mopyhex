@@ -18,6 +18,26 @@ class crit_node(node):
 		for child in children:
 			self.children[child.move] = child
 
+	def value(self, explore):
+		"""
+		Calculate the UCT value of this node relative to its parent, the parameter
+		"explore" specifies how much the value should favor nodes that have
+		yet to be thoroughly explored versus nodes that seem to have a high win
+		rate. 
+		Currently explore is set to zero when choosing the best move to play so
+		that the move with the highest winrate is always chossen. When searching
+		explore is set to EXPLORATION specified above.
+		"""
+		#unless explore is set to zero, maximally favor unexplored nodes
+		if(self.N == 0):
+			if(explore == 0):
+				return 0
+			else:
+				return inf
+		else:
+			#just treat criticality instances as additional wins (not sure if this is best idea)
+			return (self.Q+self.crit_count)/self.N + explore*sqrt(2*log(self.parent.N)/self.N)
+
 class ext_crit_mctsagent(mctsagent):
 	def get_graph(self, state, color):
 		graph = {}
@@ -138,7 +158,11 @@ class ext_crit_mctsagent(mctsagent):
 		while(time.clock() - startTime <time_budget):
 			node, state = self.select_node()
 			turn = state.turn()
-			outcome, new_crits = self.roll_out(state)
+			if node.parent:
+				crit_pts = [x.move for x in node.parent.children.values() if x.crit_count>0]
+			else:
+				crit_pts = []
+			outcome, new_crits = self.roll_out(state, crit_pts)
 			total_crits +=len(new_crits)
 			self.backup(node, turn, outcome, new_crits)
 			num_rollouts += 1
@@ -155,12 +179,9 @@ class ext_crit_mctsagent(mctsagent):
 		node = self.root
 		state = deepcopy(self.rootstate)
 
-		#stop if we find reach a leaf node
+		#stop if we reach a leaf node
 		while(len(node.children)!=0):
-			#first decend using critical points only
-			max_value = max(node.children.values(), key = lambda n: n.crit_count).value(self.EXPLORATION)
-			if max_value == 0:
-				max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
+			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
 			#decend to the maximum value node, break ties at random
 			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION) == max_value]
 			node = random.choice(max_nodes)
@@ -224,10 +245,10 @@ class ext_crit_mctsagent(mctsagent):
 		self.rootstate = deepcopy(state)
 		self.root = crit_node()
 
-	def roll_out(self, state):
+	def roll_out(self, state, crit_pts):
 		"""Simulate a random game except that we play all known critical
 		cells first, return the winning player and record critical cells at the end."""
-		"""moves = [x for x in crit_pts if state.board[x] == gamestate.PLAYERS["none"]]
+		moves = [x for x in crit_pts if state.board[x] == gamestate.PLAYERS["none"]]
 		last = None
 		while(moves):
 			move = random.choice(moves)
@@ -235,17 +256,17 @@ class ext_crit_mctsagent(mctsagent):
 			moves.remove(move)
 			if(state.winner() != gamestate.PLAYERS["none"]):
 				last = move
-				break"""
-
-		"""if(state.winner() == gamestate.PLAYERS["none"]):"""
-		moves = state.moves()
-		while(True):
-			move = random.choice(moves)
-			state.play(move)
-			moves.remove(move)
-			if(state.winner() != gamestate.PLAYERS["none"]):
-				last = move
 				break
+
+		if(state.winner() == gamestate.PLAYERS["none"]):
+			moves = state.moves()
+			while(True):
+				move = random.choice(moves)
+				state.play(move)
+				moves.remove(move)
+				if(state.winner() != gamestate.PLAYERS["none"]):
+					last = move
+					break
 
 		if(last):
 			G = self.get_graph(state, state.winner())

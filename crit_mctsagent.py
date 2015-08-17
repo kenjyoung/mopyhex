@@ -18,6 +18,27 @@ class crit_node(node):
 		for child in children:
 			self.children[child.move] = child
 
+	def value(self, explore):
+		"""
+		Calculate the UCT value of this node relative to its parent, the parameter
+		"explore" specifies how much the value should favor nodes that have
+		yet to be thoroughly explored versus nodes that seem to have a high win
+		rate. 
+		Currently explore is set to zero when choosing the best move to play so
+		that the move with the highest winrate is always chossen. When searching
+		explore is set to EXPLORATION specified above.
+		"""
+		#unless explore is set to zero, maximally favor unexplored nodes
+		if(self.N == 0):
+			if(explore == 0):
+				return 0
+			else:
+				return inf
+		else:
+			#just treat criticality instances as additional wins (not sure if this is best idea)
+			return (self.Q+self.crit_count)/self.N + explore*sqrt(2*log(self.parent.N)/self.N)
+
+
 class crit_mctsagent(mctsagent):
 	def __init__(self, state=gamestate(8)):
 		super().__init__(state)
@@ -85,10 +106,7 @@ class crit_mctsagent(mctsagent):
 
 		#stop if we find reach a leaf node
 		while(len(node.children)!=0):
-			#first decend using critical points only
-			max_value = max(node.children.values(), key = lambda n: n.crit_count).value(self.EXPLORATION)
-			if max_value == 0:
-				max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
+			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
 			#decend to the maximum value node, break ties at random
 			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION) == max_value]
 			node = random.choice(max_nodes)

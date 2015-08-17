@@ -12,7 +12,7 @@ def main():
 	"""
 	interface1 = gtpinterface(ext_crit_mctsagent())
 	interface2 = gtpinterface(crit_mctsagent())
-	print(str(tournament(interface1, interface2, 4, 2, 3, ['a1'])))
+	print(str(tournament(interface1, interface2, 200, 15, 3, ['a1'])))
 	
 
 if __name__ == "__main__":
