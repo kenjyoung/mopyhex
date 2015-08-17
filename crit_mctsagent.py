@@ -10,7 +10,8 @@ class crit_node(node):
 		self.parent = parent
 		self.N = 0 #times this position was visited
 		self.Q = 0 #average reward (wins-losses) from this position
-		self.crit_count = 0 # times this move has been critical in a rollout
+		self.Q_CRIT = 0 # times this move has been critical in a rollout
+		self.N_CRIT = 0 # times this move has appeared in a rollout
 		self.children = {}
 		self.outcome = gamestate.PLAYERS["none"]
 
@@ -18,7 +19,7 @@ class crit_node(node):
 		for child in children:
 			self.children[child.move] = child
 
-	def value(self, explore):
+	def value(self, explore, crit):
 		"""
 		Calculate the UCT value of this node relative to its parent, the parameter
 		"explore" specifies how much the value should favor nodes that have
@@ -35,11 +36,14 @@ class crit_node(node):
 			else:
 				return inf
 		else:
-			#just treat criticality instances as additional wins (not sure if this is best idea)
-			return (self.Q+self.crit_count)/self.N + explore*sqrt(2*log(self.parent.N)/self.N)
+			#rave like use of criticality info:
+			alpha = max(0,(crit - self.N)/crit)
+			return self.Q*(1-alpha)/self.N+self.Q_CRIT*alpha/self.N
 
 
 class crit_mctsagent(mctsagent):
+	CRIT_FACTOR = 500
+
 	def __init__(self, state=gamestate(8)):
 		super().__init__(state)
 		self.crit_pts = set()
@@ -86,10 +90,14 @@ class crit_mctsagent(mctsagent):
 		while(time.clock() - startTime <time_budget):
 			node, state = self.select_node()
 			turn = state.turn()
-			outcome, new_crit = self.roll_out(state)
+			if node.parent:
+				crit_pts = [x.move for x in node.parent.children.values() if x.Q_CRIT>0]
+			else:
+				crit_pts = []
+			outcome, new_crit, non_crits = self.roll_out(state, crit_pts)
+			self.backup(node, turn, outcome, new_crit, non_crits)
 			if new_crit:
 				total_crits+=1
-			self.backup(node, turn, outcome, new_crit)
 			num_rollouts += 1
 
 		stderr.write("Avg cut points per rollout: "+str(total_crits/num_rollouts)+"\n")
@@ -106,9 +114,9 @@ class crit_mctsagent(mctsagent):
 
 		#stop if we find reach a leaf node
 		while(len(node.children)!=0):
-			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION)).value(self.EXPLORATION)
+			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION, self.CRIT_FACTOR)).value(self.EXPLORATION, self.CRIT_FACTOR)
 			#decend to the maximum value node, break ties at random
-			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION) == max_value]
+			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION, self.CRIT_FACTOR) == max_value]
 			node = random.choice(max_nodes)
 			state.play(node.move)
 
@@ -125,7 +133,7 @@ class crit_mctsagent(mctsagent):
 		return (node, state)
 
 
-	def backup(self, node, turn, outcome, crit):
+	def backup(self, node, turn, outcome, crit, non_crits):
 		"""
 		Update the node statistics on the path from the passed node to root to reflect
 		the outcome of a randomly simulated playout.
@@ -136,7 +144,11 @@ class crit_mctsagent(mctsagent):
 
 		while node!=None:
 			if crit in node.children:
-				node.children[crit].crit_count+=1
+					node.children[crit].Q_CRIT+=1
+					node.children[crit].N_CRIT+=1
+			for point in non_crits:
+				if point in node.children:
+					node.children[point].N_CRIT+=1
 			node.N += 1
 			node.Q +=reward
 			reward = -reward
@@ -168,7 +180,7 @@ class crit_mctsagent(mctsagent):
 		self.rootstate = deepcopy(state)
 		self.root = crit_node()
 
-	def roll_out(self, state):
+	def roll_out(self, state, crit_pts):
 		"""Simulate a random game except that we play all known critical
 		cells first, return the winning player and record critical cells at the end."""
 		"""moves = [x for x in crit_pts if state.board[x] == gamestate.PLAYERS["none"]]
@@ -182,8 +194,9 @@ class crit_mctsagent(mctsagent):
 				break"""
 
 		"""if(state.winner() == gamestate.PLAYERS["none"]):"""
-		moves = state.moves()
-		while(True):
+		moves = [x for x in crit_pts if state.board[x] == gamestate.PLAYERS["none"]]
+		last = None
+		while(moves):
 			move = random.choice(moves)
 			state.play(move)
 			moves.remove(move)
@@ -191,12 +204,26 @@ class crit_mctsagent(mctsagent):
 				last = move
 				break
 
+		if(state.winner() == gamestate.PLAYERS["none"]):
+			moves = state.moves()
+			while(True):
+				move = random.choice(moves)
+				state.play(move)
+				moves.remove(move)
+				if(state.winner() != gamestate.PLAYERS["none"]):
+					last = move
+					break
+
 		if(last):
 			new_crit = last
+			non_crits = [(x, y) for x in range(state.size) for y in range(state.size)\
+							if state.board[(x,y)]==state.winner() and (x,y)!=last]
+		#this only happens if the state the rollout started in was already decided:
 		else:
 			new_crit = None
+			non_crits = None
 
-		return state.winner(), new_crit
+		return state.winner(), new_crit, non_crits
 
 	def tree_size(self):
 		"""
