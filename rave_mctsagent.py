@@ -1,6 +1,6 @@
 from mctsagent import *
 
-class crit_node(node):
+class rave_node(node):
 	def __init__(self, move = None, parent = None):
 		"""
 		Initialize a new node with optional move and parent and initially empty
@@ -10,8 +10,8 @@ class crit_node(node):
 		self.parent = parent
 		self.N = 0 #times this position was visited
 		self.Q = 0 #average reward (wins-losses) from this position
-		self.Q_CRIT = 0 # times this move has been critical in a rollout
-		self.N_CRIT = 0 # times this move has appeared in a rollout
+		self.Q_RAVE = 0 # times this move has been critical in a rollout
+		self.N_RAVE = 0 # times this move has appeared in a rollout
 		self.children = {}
 		self.outcome = gamestate.PLAYERS["none"]
 
@@ -31,94 +31,17 @@ class crit_node(node):
 		"""
 		#unless explore is set to zero, maximally favor unexplored nodes
 		if(self.N == 0):
-			return inf
-		elif self.N_CRIT != 0:
+			if(explore == 0):
+				return 0
+			else:
+				return inf
+		else:
 			#rave like use of criticality info:
 			alpha = max(0,(crit - self.N)/crit)
-			return self.Q*(1-alpha)/self.N+2*self.Q_CRIT*alpha/self.N_CRIT
-		else:
-			return self.Q/self.N
+			return self.Q*(1-alpha)/self.N+self.Q_RAVE*alpha/self.N_RAVE
 
-
-class ext_crit_mctsagent(mctsagent):
-	CRIT_FACTOR = 500
-
-	def get_graph(self, state, color):
-		graph = {}
-		size = state.size
-		board = state.board
-		if color == gamestate.PLAYERS["white"]:
-			groups = state.white_groups
-		else:
-			groups = state.black_groups
-
-		group_rep = groups.find(gamestate.EDGE1)
-		if color == gamestate.PLAYERS["white"]:
-			graph[gamestate.EDGE1] = [(0,y) for y in range(size) if  groups.find((0,y))==group_rep]
-			graph[gamestate.EDGE2] = [(size-1,y) for y in range(size) if groups.find((size-1,y))==group_rep]
-		else:
-			graph[gamestate.EDGE1] = [(x,0) for x in range(size) if  groups.find((x,0))==group_rep]
-			graph[gamestate.EDGE2] = [(x, size-1) for x in range(size) if groups.find((x,size-1))==group_rep]
-
-		for n in graph[gamestate.EDGE1]:
-			graph[n] = [gamestate.EDGE1]
-		for n in graph[gamestate.EDGE2]:
-			graph[n] = [gamestate.EDGE2]
-
-		for x in range(size):
-			for y in range(size):
-				if board[(x,y)] == color:
-					if groups.find((x,y)) == group_rep:
-						if (x,y) not in graph.keys():
-							graph[(x,y)] = []
-						for n in state.neighbors((x,y)):
-							if groups.find(n) == group_rep:
-								graph[(x,y)].append(n)
-
-		return graph	
-
-	def find_crit(self, G, s, d):
-		cut_points = set()
-		S = []
-		#stack contains nodes being visited along with iterator into children
-		S.append([s ,iter(G[s])])
-		visited = set()
-		visited.add(s)
-		leaves = []
-		depth = {}
-		depth[s] = 0
-		parent = {}
-		parent[s] = None
-		low = {}
-		low[s] = 0
-
-		while S:
-			v = S[-1][0]
-			try:
-				child = next(S[-1][1])
-				#vertex is initially pushed to stack
-				if(child not in visited):
-					visited.add(child)
-					S.append([child ,iter(G[child])])
-					depth[child] = depth[v]+1
-					parent[child] = v
-					low[child] = depth[child]
-				elif child is not parent[v]:
-					low[v] = min(low[v], depth[child])
-			#vertex is removed from stack and we backtrack by poping stack
-			except StopIteration:
-				S.pop()
-				p = parent[v]
-				if(p):
-					low[p] = min(low[p], low[v])
-
-		v = d
-		while parent[v] != s:
-				if(low[v] >= depth[parent[v]]):
-					cut_points.add(parent[v])
-				v = parent[v]
-
-		return cut_points
+class rave_mctsagent(mctsagent):
+	RAVE_CONSTANT = 500
 
 	def best_move(self):
 		"""
@@ -147,7 +70,7 @@ class ext_crit_mctsagent(mctsagent):
 		#if for whatever reason the move is not in the children of
 		#the root just throw out the tree and start over
 		self.rootstate.play(move)
-		self.root = crit_node()
+		self.root = rave_node()
 
 
 	def search(self, time_budget):
@@ -156,22 +79,15 @@ class ext_crit_mctsagent(mctsagent):
 		"""
 		startTime = time.clock()
 		num_rollouts = 0
-		total_crits = 0
 
 		#do until we exceed our time budget
 		while(time.clock() - startTime <time_budget):
 			node, state = self.select_node()
 			turn = state.turn()
-			if node.parent:
-				crit_pts = [x.move for x in node.parent.children.values() if x.Q_CRIT>0]
-			else:
-				crit_pts = []
-			outcome, new_crits, non_crits = self.roll_out(state, crit_pts)
-			self.backup(node, turn, outcome, new_crits, non_crits)
-			total_crits+=len(new_crits)
+			outcome, black_rave_pts, white_rave_pts = self.roll_out(state)
+			self.backup(node, turn, outcome, black_rave_pts, white_rave_pts)
 			num_rollouts += 1
 
-		stderr.write("Avg cut points per rollout: "+str(total_crits/num_rollouts)+"\n")
 		stderr.write("Ran "+str(num_rollouts)+ " rollouts in " +\
 			str(time.clock() - startTime)+" sec\n")
 		stderr.write("Node count: "+str(self.tree_size())+"\n")
@@ -185,9 +101,9 @@ class ext_crit_mctsagent(mctsagent):
 
 		#stop if we reach a leaf node
 		while(len(node.children)!=0):
-			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION, self.CRIT_FACTOR)).value(self.EXPLORATION, self.CRIT_FACTOR)
+			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION, self.RAVE_CONSTANT)).value(self.EXPLORATION, self.RAVE_CONSTANT)
 			#decend to the maximum value node, break ties at random
-			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION, self.CRIT_FACTOR) == max_value]
+			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION, self.RAVE_CONSTANT) == max_value]
 			node = random.choice(max_nodes)
 			state.play(node.move)
 
@@ -204,7 +120,7 @@ class ext_crit_mctsagent(mctsagent):
 		return (node, state)
 
 
-	def backup(self, node, turn, outcome, crits, non_crits):
+	def backup(self, node, turn, outcome, black_rave_pts, white_rave_pts):
 		"""
 		Update the node statistics on the path from the passed node to root to reflect
 		the outcome of a randomly simulated playout.
@@ -214,15 +130,23 @@ class ext_crit_mctsagent(mctsagent):
 		reward = -1 if outcome == turn else 1
 
 		while node!=None:
-			for point in crits:
-				if point in node.children:
-					node.children[point].Q_CRIT+=1
-					node.children[point].N_CRIT+=1
-			for point in non_crits:
-				if point in node.children:
-					node.children[point].N_CRIT+=1
+			if turn == gamestate.PLAYERS["white"]:
+				for point in white_rave_pts:
+					if point in node.children:
+						node.children[point].Q_RAVE+=-reward
+						node.children[point].N_RAVE+=1
+			else:
+				for point in black_rave_pts:
+					if point in node.children:
+						node.children[point].Q_RAVE+=-reward
+						node.children[point].N_RAVE+=1
+
 			node.N += 1
 			node.Q +=reward
+			if turn == gamestate.PLAYERS["black"]:
+				turn = gamestate.PLAYERS["white"]
+			else:
+				turn = gamestate.PLAYERS["black"]
 			reward = -reward
 			node = node.parent
 
@@ -238,7 +162,7 @@ class ext_crit_mctsagent(mctsagent):
 
 
 		for move in state.moves():
-			children.append(crit_node(move, parent))
+			children.append(rave_node(move, parent))
 
 		parent.add_children(children)
 		return True
@@ -250,41 +174,28 @@ class ext_crit_mctsagent(mctsagent):
 		state.
 		"""
 		self.rootstate = deepcopy(state)
-		self.root = crit_node()
+		self.root = rave_node()
 
-	def roll_out(self, state, crit_pts):
+	def roll_out(self, state):
 		"""Simulate a random game except that we play all known critical
 		cells first, return the winning player and record critical cells at the end."""
-		moves = [x for x in crit_pts if state.board[x] == gamestate.PLAYERS["none"]]
-		last = None
-		while(moves):
+		moves = state.moves()
+		while(state.winner() == gamestate.PLAYERS["none"]):
 			move = random.choice(moves)
 			state.play(move)
 			moves.remove(move)
-			if(state.winner() != gamestate.PLAYERS["none"]):
-				last = move
-				break
 
-		if(state.winner() == gamestate.PLAYERS["none"]):
-			moves = state.moves()
-			while(True):
-				move = random.choice(moves)
-				state.play(move)
-				moves.remove(move)
-				if(state.winner() != gamestate.PLAYERS["none"]):
-					last = move
-					break
+		black_rave_pts = []
+		white_rave_pts = []
 
-		if(last):
-			G = self.get_graph(state, state.winner())
-			new_crits = self.find_crit(G, gamestate.EDGE1, gamestate.EDGE2)
-			non_crits = [x for x in G.keys() if x not in new_crits and x!=gamestate.EDGE2 and x!=gamestate.EDGE1]
-		#this only happens if the state the rollout started in was already decided:
-		else:
-			new_crits = set()
-			non_crits = set()
+		for x in range(state.size):
+			for y in range(state.size):
+				if state.board[(x,y)] == gamestate.PLAYERS["black"]:
+					black_rave_pts.append((x,y))
+				elif state.board[(x,y)] == gamestate.PLAYERS["white"]:
+					white_rave_pts.append((x,y))
 
-		return state.winner(), new_crits, non_crits
+		return state.winner(), black_rave_pts, white_rave_pts
 
 	def tree_size(self):
 		"""

@@ -2,6 +2,7 @@ from gtpinterface import gtpinterface
 from mctsagent import mctsagent
 from crit_mctsagent import crit_mctsagent
 from ext_crit_mctsagent import ext_crit_mctsagent
+from rave_mctsagent import rave_mctsagent
 def main():
 	"""
 	Main function, simply sends user input on to the gtp interface and prints

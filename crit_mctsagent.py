@@ -35,7 +35,7 @@ class crit_node(node):
 		elif self.N_CRIT != 0:
 			#rave like use of criticality info:
 			alpha = max(0,(crit - self.N)/crit)
-			return self.Q*(1-alpha)/self.N+self.Q_CRIT*alpha/self.N_CRIT
+			return self.Q*(1-alpha)/self.N+2*self.Q_CRIT*alpha/self.N_CRIT
 		else:
 			return self.Q/self.N
 
