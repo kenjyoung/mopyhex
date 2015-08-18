@@ -31,14 +31,14 @@ class crit_node(node):
 		"""
 		#unless explore is set to zero, maximally favor unexplored nodes
 		if(self.N == 0):
-			if(explore == 0):
-				return 0
-			else:
-				return inf
-		else:
+			return inf
+		elif self.N_CRIT != 0:
 			#rave like use of criticality info:
 			alpha = max(0,(crit - self.N)/crit)
-			return self.Q*(1-alpha)/self.N+self.Q_CRIT*alpha/self.N
+			return self.Q*(1-alpha)/self.N+self.Q_CRIT*alpha/self.N_CRIT
+		else:
+			return self.Q/self.N
+
 
 class ext_crit_mctsagent(mctsagent):
 	CRIT_FACTOR = 500
