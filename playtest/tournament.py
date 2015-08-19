@@ -49,10 +49,10 @@ def tournament(interface1, interface2, game_number=100, movetime=10, size=8, ope
 
 			print_game(game)
 			if(interface1.send_command("winner")[1][0] == c1):
-				print("Game complete, winner: agent1("+c1+")\n")
+				print("Game complete, winner: "+interface1.agent_name+"("+c1+")\n")
 				win_count+=1
 			else:
-				print("Game complete, winner: agent2("+c2+")\n")
+				print("Game complete, winner: "+interface2.agent_name+"("+c2+")\n")
 
 		else:
 			while(interface1.send_command("winner")[1] == "none"):
@@ -67,10 +67,10 @@ def tournament(interface1, interface2, game_number=100, movetime=10, size=8, ope
 
 			print_game(game)	
 			if(interface1.send_command("winner")[1][0] == c2):
-				print("Game complete, winner: agent1("+c2+")\n")
+				print("Game complete, winner: "+interface1.agent_name+"("+c2+")\n")
 				win_count+=1
 			else:
-				print("Game complete, winner: agent2("+c1+")\n")
+				print("Game complete, winner: "+interface2.agent_name+"("+c1+")\n")
 		sys.stdout.flush() #flush buffer so intermediate results can be viewed
 
 	return win_count/game_number

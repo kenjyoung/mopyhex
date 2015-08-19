@@ -10,9 +10,13 @@ def main():
 	Run a tournament between two agents and print the resulting winrate
 	for the first agent.
 	"""
-	interface1 = gtpinterface(ext_crit_mctsagent())
-	interface2 = gtpinterface(crit_mctsagent())
-	print(str(tournament(interface1, interface2, 200, 15, 3, ['a1'])))
+	if len(sys.argv)<3:
+		print("Please provide the names of 2 agents to test against each other.")
+		return
+
+	interface1 = gtpinterface(sys.argv[1])
+	interface2 = gtpinterface(sys.argv[2])
+	print("Winrate for agent1 ("+interface1.agent_name+") "+str(tournament(interface1, interface2, 200, 15, 9)))
 	
 
 if __name__ == "__main__":
