@@ -10,7 +10,7 @@ def main():
 	responses.
 	"""
 	agent = miai_mctsagent()
-	interface = gtpinterface(agent)
+	interface = gtpinterface("full_crit")
 	while True:
 		command = input()
 		success, response = interface.send_command(command)

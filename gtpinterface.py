@@ -1,9 +1,14 @@
 import sys
 from mctsagent import mctsagent
+from ext_crit_mctsagent import ext_crit_mctsagent
+from crit_mctsagent import crit_mctsagent
+from miai_mctsagent import miai_mctsagent
+from rave_mctsagent import rave_mctsagent
 from gamestate import gamestate
 version = 0.1
 protocol_version = 2
 class gtpinterface:
+	AGENTS = {"miai":miai_mctsagent, "simple_crit":crit_mctsagent, "full_crit":ext_crit_mctsagent, "basic":miai_mctsagent, "rave":rave_mctsagent}
 	"""
 	Interface for using go-text-protocol to control the program
 	Each implemented GTP command returns a string response for the user, along with
@@ -11,7 +16,7 @@ class gtpinterface:
 	The interface contains an agent which decides which moves to make on request
 	along with a gamestate which holds the current state of the game.
 	"""
-	def __init__(self, agent):
+	def __init__(self, agent_name ="basic"):
 		"""
 		Initilize the list of available commands, binding appropriate names to the
 		funcitons defined in this file.
@@ -33,9 +38,16 @@ class gtpinterface:
 		commands["set_time"] = self.gtp_time
 		commands["winner"] = self.gtp_winner
 		commands["hexgui-analyze_commands"] = self.gtp_analyze
+		commands["agent"] = self.gtp_agent
 		self.commands = commands
 		self.game = gamestate(8)
-		self.agent = agent
+		self.agent_name = agent_name
+		try:
+			self.agent = self.AGENTS[agent_name]()
+		except KeyError:
+			print("Unknown agent defaulting to basic")
+			self.agent_name = "basic"
+			self.agent = self.AGENTS[agent_name]()
 		self.agent.set_gamestate(self.game)
 		self.move_time = 10
 
@@ -241,4 +253,25 @@ class gtpinterface:
 		Added to avoid crashing with gui but not yet implemented.
 		"""
 		return (True, "")
+
+	def gtp_agent(self, args):
+		"Change which agent is used by the player between available options."
+
+		if len(args)<1:
+			ret="Available agents:"
+			for agent in self.AGENTS.keys():
+				if self.agent_name == agent:
+					ret+="\n\033[92m"+agent+"\033[0m"
+				else:
+					ret+="\n"+agent
+			return (True, ret)
+		else:
+			try:
+				self.agent = self.AGENTS[args[0]](self.game)
+			except KeyError:
+				return (False, "Unknown agent")
+			self.agent_name = args[0]
+			return (True, "")
+
+
 
