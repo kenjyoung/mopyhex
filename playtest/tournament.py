@@ -26,6 +26,10 @@ def tournament(interface1, interface2, game_number=100, movetime=10, size=8, ope
 	interface1.send_command("boardsize "+str(size))
 	interface2.send_command("boardsize "+str(size))
 
+	print("time per turn: "+str(movetime))
+	print("boardsize: "+str(size))
+	print("opening moves: "+str(opening_moves))
+
 	win_count = 0
 	for i in range(game_number):
 		interface1.send_command("clear_board")
