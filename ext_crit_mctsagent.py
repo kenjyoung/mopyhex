@@ -41,7 +41,7 @@ class crit_node(node):
 
 
 class ext_crit_mctsagent(mctsagent):
-	CRIT_FACTOR = 500
+	CRIT_FACTOR = 300
 
 	def get_graph(self, state, color):
 		graph = {}

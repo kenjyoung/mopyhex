@@ -1,7 +1,7 @@
 from gamestate import gamestate
 import time
-import random
 from math import sqrt, log
+import random
 from copy import copy, deepcopy
 from sys import stderr
 from queue import Queue

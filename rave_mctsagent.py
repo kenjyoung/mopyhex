@@ -36,12 +36,12 @@ class rave_node(node):
 			else:
 				return inf
 		else:
-			#rave like use of criticality info:
+			#rave valuation:
 			alpha = max(0,(crit - self.N)/crit)
 			return self.Q*(1-alpha)/self.N+self.Q_RAVE*alpha/self.N_RAVE
 
 class rave_mctsagent(mctsagent):
-	RAVE_CONSTANT = 500
+	RAVE_CONSTANT = 300
 
 	def best_move(self):
 		"""

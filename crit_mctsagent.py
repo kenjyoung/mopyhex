@@ -19,7 +19,7 @@ class crit_node(node):
 		for child in children:
 			self.children[child.move] = child
 
-	def value(self, explore, crit):
+	def value(self, explore, crit, size):
 		"""
 		Calculate the UCT value of this node relative to its parent, the parameter
 		"explore" specifies how much the value should favor nodes that have
@@ -35,13 +35,13 @@ class crit_node(node):
 		elif self.N_CRIT != 0:
 			#rave like use of criticality info:
 			alpha = max(0,(crit - self.N)/crit)
-			return self.Q*(1-alpha)/self.N+2*self.Q_CRIT*alpha/self.N_CRIT
+			return self.Q*(1-alpha)/self.N+2*size*self.Q_CRIT*alpha/self.N_CRIT
 		else:
 			return self.Q/self.N
 
 
 class crit_mctsagent(mctsagent):
-	CRIT_FACTOR = 500
+	CRIT_FACTOR = 300
 
 	def __init__(self, state=gamestate(8)):
 		super().__init__(state)
@@ -113,9 +113,9 @@ class crit_mctsagent(mctsagent):
 
 		#stop if we find reach a leaf node
 		while(len(node.children)!=0):
-			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION, self.CRIT_FACTOR)).value(self.EXPLORATION, self.CRIT_FACTOR)
+			max_value = max(node.children.values(), key = lambda n: n.value(self.EXPLORATION, self.CRIT_FACTOR, self.rootstate.size)).value(self.EXPLORATION, self.CRIT_FACTOR, self.rootstate.size)
 			#decend to the maximum value node, break ties at random
-			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION, self.CRIT_FACTOR) == max_value]
+			max_nodes = [n for n in node.children.values() if n.value(self.EXPLORATION, self.CRIT_FACTOR, self.rootstate.size) == max_value]
 			node = random.choice(max_nodes)
 			state.play(node.move)
 
@@ -220,7 +220,7 @@ class crit_mctsagent(mctsagent):
 		#this only happens if the state the rollout started in was already decided:
 		else:
 			new_crit = None
-			non_crits = None
+			non_crits = []
 
 		return state.winner(), new_crit, non_crits
 
