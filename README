@@ -1,1 +1,35 @@
-Simple python implementation of monte carlo tree search for the board game hex. (in progress)
+Overview
+========
+Simple python implementation of monte carlo tree search for the board game hex. Makes use of go text protocol for user interaction and can be used either via command line or using a gui such as hexgui found here (https://github.com/ryanbhayward/hexgui).
+
+To run the player you will need python3 and numpy. Use "python3 main.py" to run.
+
+Once player is running you can use the command "genmove <color>" where color is white or black to generate and play a move for the selected color. 
+
+Use "play <color> <cell>" where cell is a board location such as a1 to play a stone of that color in the cell. 
+
+"showboard" will display an ascii representation of the board.
+
+"boardsize <size>" will start a new game with a board of the selected size.
+
+"list_commands" will show a full list of available commands.
+
+The master branch contains only the simple MCTS player with no added frills.
+
+The branch "all" contains several other players which use other additional techniques. Use git checkout all to access this branch if desired. These players can be switched between at runtime using "agent <name>" where name is the name of the corresponding agent. Call agent without arguments for a list of available agents.
+
+Agents in "all" Branch
+======================
+basic: no frills MCTS
+
+rave: a player using a form of rapid action evaluation which in addition to normal MCTS assigns some value to each move which appears in a winning simulation.
+
+miai: a player which uses knowledge of the simple miai connection strategy to detect wins earlier and automatically respond to probes.
+
+simple_crit: records the last move played in each rollout (which is known to be in a minimal winning path) and assigns it a rave like bonus.
+
+full_crit: like simple crit but uses a graph theoretic algorithm to find all cutpoints in the winning position and assigns them a rave like bonus. Neither this agent nor simple_crit are particularly strong, it is an interesting question whether a better use of  this criticality information could be found.
+
+
+
+
